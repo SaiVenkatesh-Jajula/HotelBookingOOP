@@ -2,7 +2,7 @@ import pandas as pd
 
 df = pd.read_csv("hotels.csv", dtype={'id': str})
 df_cards = pd.read_csv("cards.csv", dtype=str).to_dict(orient='records')
-
+df_secards = pd.read_csv("card_security.csv",dtype=str)
 
 class Hotel:
     def __init__(self, hotel_id):
@@ -39,6 +39,13 @@ class Payment:
         else:
             return False
 
+class SecurePayment(Payment):
+    def validate(self,passward):
+        password = df_secards.loc[df_secards['number'] == self.cc, 'password'].squeeze()
+        if password == passward:
+            return True
+        else:
+            return False
 
 class Ticket:
     def __init__(self, name, hotel_obj):
@@ -64,12 +71,15 @@ if hotel.available():
     expiry_date = "12/26"
     cvv = "123"
     card_holder = "JOHN SMITH"
-    payment = Payment(card_number, expiry_date, cvv, card_holder)
+    payment = SecurePayment(card_number, expiry_date, cvv, card_holder)
     if payment.payment():
-        hotel.book()
-        name = input("Enter Your Name: ")
-        ticket = Ticket(name, hotel)
-        print(ticket.generate())
+        if payment.validate(passward="mypass"):
+            hotel.book()
+            name = input("Enter Your Name: ")
+            ticket = Ticket(name, hotel)
+            print(ticket.generate())
+        else:
+            print("Authentication Failed")
     else:
         print("Something went wrong in payment")
 else:
