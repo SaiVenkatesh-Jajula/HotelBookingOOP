@@ -2,7 +2,8 @@ import pandas as pd
 
 df = pd.read_csv("hotels.csv", dtype={'id': str})
 df_cards = pd.read_csv("cards.csv", dtype=str).to_dict(orient='records')
-df_secards = pd.read_csv("card_security.csv",dtype=str)
+df_secards = pd.read_csv("card_security.csv", dtype=str)
+
 
 class Hotel:
     def __init__(self, hotel_id):
@@ -39,22 +40,36 @@ class Payment:
         else:
             return False
 
+
 class SecurePayment(Payment):
-    def validate(self,passward):
+    def validate(self, passward):
         password = df_secards.loc[df_secards['number'] == self.cc, 'password'].squeeze()
         if password == passward:
             return True
         else:
             return False
 
+
 class Ticket:
     def __init__(self, name, hotel_obj):
         self.name = name
         self.hotel = hotel_obj
 
-    def generate(self):
+    def main_generate(self):
         data = f"""
         Here the Ticket details:
+        Name : {self.name}
+        HotelName : {self.hotel.hotel_name}
+        City: {self.hotel.hotel_city}
+        """
+        return data
+
+
+class AllTickets(Ticket):
+    def spa_generate(self):
+        data = f"""
+        Thanks for booking SPA reservation
+        Here the SPA details:
         Name : {self.name}
         HotelName : {self.hotel.hotel_name}
         City: {self.hotel.hotel_city}
@@ -76,8 +91,13 @@ if hotel.available():
         if payment.validate(passward="mypass"):
             hotel.book()
             name = input("Enter Your Name: ")
-            ticket = Ticket(name, hotel)
-            print(ticket.generate())
+            ticket = AllTickets(name, hotel)
+            print(ticket.main_generate())
+            spa = input("DO you want a SPA package?")
+            if spa == 'yes':
+                print(ticket.spa_generate())
+            else:
+                print("Thanks!")
         else:
             print("Authentication Failed")
     else:
